@@ -84,19 +84,11 @@ export default function PDAMWelcomeSmallerGlass() {
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
                 <Link 
-                  href="/login"
+                  href="/dashboard"
                   className="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-200 flex items-center justify-center gap-2 text-sm"
                 >
                   <FileText className="w-4 h-4" />
                   Login
-                </Link>
-                {/* Tambahkan tombol Daftar Baru agar konsisten */}
-                <Link 
-                  href="/register"
-                  className="w-full sm:w-auto px-6 py-3 bg-white border border-gray-300 text-blue-600 font-semibold rounded-xl hover:bg-gray-100 transition-all shadow-md shadow-gray-200 flex items-center justify-center gap-2 text-sm"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  Daftar Baru
                 </Link>
               </div>
             </div>

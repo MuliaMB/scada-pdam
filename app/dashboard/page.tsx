@@ -3,29 +3,28 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Waves, Gauge, Activity, Droplet, AlertTriangle, 
-  Zap, Settings, Bell, Menu, ArrowUp, ArrowDown, 
-  RefreshCw, Power
+  Zap, Settings, ArrowUp, ArrowDown, RefreshCw, LucideIcon
 } from 'lucide-react';
 import { 
-  LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, 
-  Tooltip, ResponsiveContainer, BarChart, Bar 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, 
+  Tooltip, ResponsiveContainer, Line
 } from 'recharts';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 // --- Types & Interfaces ---
 interface PumpData {
   id: string;
   name: string;
   status: 'ON' | 'OFF' | 'FAULT';
-  load: number; // %
+  load: number;
   rpm: number;
-  temp: number; // Celcius
+  temp: number;
 }
 
 interface WaterQuality {
   ph: number;
-  turbidity: number; // NTU
-  tds: number; // ppm
+  turbidity: number;
+  tds: number;
 }
 
 interface Alarm {
@@ -49,8 +48,17 @@ const generatePressureData = () =>
 
 // --- SUB-COMPONENTS ---
 
-// 1. KPI Card with Sparkline
-const KPICard = ({ title, value, unit, icon: Icon, color, trend, trendValue }: any) => {
+interface KPICardProps {
+  title: string;
+  value: string | number;
+  unit: string;
+  icon: LucideIcon;
+  color: string;
+  trend: 'up' | 'down';
+  trendValue: number;
+}
+
+const KPICard = ({ title, value, unit, icon: Icon, color, trend, trendValue }: KPICardProps) => {
   const data = generateSparklineData();
   
   return (
@@ -71,7 +79,6 @@ const KPICard = ({ title, value, unit, icon: Icon, color, trend, trendValue }: a
         </div>
       </div>
       
-      {/* Mini Trend Indicator */}
       <div className="flex items-center gap-2 mb-4">
         <span className={`flex items-center text-xs font-bold ${trend === 'up' ? 'text-emerald-500' : 'text-rose-500'}`}>
           {trend === 'up' ? <ArrowUp className="w-3 h-3 mr-1" /> : <ArrowDown className="w-3 h-3 mr-1" />}
@@ -80,7 +87,6 @@ const KPICard = ({ title, value, unit, icon: Icon, color, trend, trendValue }: a
         <span className="text-xs text-slate-400">vs last hour</span>
       </div>
 
-      {/* Sparkline Chart */}
       <div className="h-16 -mx-2">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data}>
@@ -105,104 +111,79 @@ const KPICard = ({ title, value, unit, icon: Icon, color, trend, trendValue }: a
   );
 };
 
-// 2. Reservoir Tank Visualization
-const ReservoirWidget = ({ levelM, levelPct }: { levelM: number, levelPct: number }) => {
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col items-center">
-      <h3 className="text-slate-600 font-semibold mb-6 w-full text-left flex items-center gap-2">
-        <Droplet className="w-5 h-5 text-blue-500" /> Reservoir Level
-      </h3>
-      
-      <div className="flex gap-8 items-end h-64 w-full justify-center">
-        {/* Tank Visual */}
-        <div className="relative w-24 h-56 bg-slate-100 rounded-lg border-2 border-slate-300 overflow-hidden">
-            {/* Water Fill */}
-            <motion.div 
-              className="absolute bottom-0 left-0 right-0 bg-blue-500 bg-opacity-80 w-full"
-              initial={{ height: 0 }}
-              animate={{ height: `${levelPct}%` }}
-              transition={{ type: "spring", bounce: 0, duration: 2 }}
-            >
-                {/* Surface Animation */}
-                <div className="absolute top-0 w-full h-2 bg-blue-400 opacity-50 animate-pulse" />
-            </motion.div>
-            
-            {/* Measurement Lines */}
-            <div className="absolute right-0 top-0 bottom-0 w-full flex flex-col justify-between py-2 px-1 pointer-events-none">
-                {[100, 75, 50, 25, 0].map(mark => (
-                    <div key={mark} className="w-full border-t border-slate-400/30 text-[10px] text-right pr-1 text-slate-500">
-                        {mark === 0 || mark === 100 ? mark + '%' : '-'}
-                    </div>
-                ))}
+const ReservoirWidget = ({ levelM, levelPct }: { levelM: number, levelPct: number }) => (
+  <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col items-center">
+    <h3 className="text-slate-600 font-semibold mb-6 w-full text-left flex items-center gap-2">
+      <Droplet className="w-5 h-5 text-blue-500" /> Reservoir Level
+    </h3>
+    <div className="flex gap-8 items-end h-64 w-full justify-center">
+      <div className="relative w-24 h-56 bg-slate-100 rounded-lg border-2 border-slate-300 overflow-hidden">
+        <motion.div 
+          className="absolute bottom-0 left-0 right-0 bg-blue-500 bg-opacity-80 w-full"
+          initial={{ height: 0 }}
+          animate={{ height: `${levelPct}%` }}
+          transition={{ type: "spring", bounce: 0, duration: 2 }}
+        >
+          <div className="absolute top-0 w-full h-2 bg-blue-400 opacity-50 animate-pulse" />
+        </motion.div>
+        <div className="absolute right-0 top-0 bottom-0 w-full flex flex-col justify-between py-2 px-1 pointer-events-none">
+          {[100, 75, 50, 25, 0].map(mark => (
+            <div key={mark} className="w-full border-t border-slate-400/30 text-[10px] text-right pr-1 text-slate-500">
+              {mark === 0 || mark === 100 ? mark + '%' : '-'}
             </div>
+          ))}
         </div>
-
-        {/* Numeric Display */}
-        <div className="flex flex-col gap-4">
-            <div className="text-center">
-                <span className="text-xs text-slate-400 uppercase">Height</span>
-                <p className="text-3xl font-bold text-slate-800">{levelM.toFixed(1)} <span className="text-base font-normal text-slate-400">m</span></p>
-            </div>
-            <div className="text-center">
-                <span className="text-xs text-slate-400 uppercase">Capacity</span>
-                <p className="text-3xl font-bold text-blue-600">{levelPct.toFixed(0)} <span className="text-base font-normal text-blue-400">%</span></p>
-            </div>
+      </div>
+      <div className="flex flex-col gap-4">
+        <div className="text-center">
+          <span className="text-xs text-slate-400 uppercase">Height</span>
+          <p className="text-3xl font-bold text-slate-800">{levelM.toFixed(1)} <span className="text-base font-normal text-slate-400">m</span></p>
+        </div>
+        <div className="text-center">
+          <span className="text-xs text-slate-400 uppercase">Capacity</span>
+          <p className="text-3xl font-bold text-blue-600">{levelPct.toFixed(0)} <span className="text-base font-normal text-blue-400">%</span></p>
         </div>
       </div>
     </div>
-  );
-};
+  </div>
+);
 
-// 3. Pump Status Card
-const PumpWidget = ({ pump }: { pump: PumpData }) => {
-  return (
-    <div className="bg-white rounded-lg border border-slate-100 p-4 flex items-center justify-between hover:shadow-md transition-shadow">
-      <div className="flex items-center gap-4">
-        <div className={`
-          w-12 h-12 rounded-full flex items-center justify-center
-          ${pump.status === 'ON' ? 'bg-emerald-100 text-emerald-600' : 
-            pump.status === 'FAULT' ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-slate-100 text-slate-400'}
-        `}>
-          <RefreshCw className={`w-6 h-6 ${pump.status === 'ON' ? 'animate-spin-slow' : ''}`} />
-        </div>
-        <div>
-          <h4 className="font-bold text-slate-700">{pump.name}</h4>
-          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-            pump.status === 'ON' ? 'bg-emerald-100 text-emerald-700' : 
-            pump.status === 'FAULT' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-600'
-          }`}>
-            {pump.status}
-          </span>
-        </div>
+const PumpWidget = ({ pump }: { pump: PumpData }) => (
+  <div className="bg-white rounded-lg border border-slate-100 p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+    <div className="flex items-center gap-4">
+      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+        pump.status === 'ON' ? 'bg-emerald-100 text-emerald-600' : 
+        pump.status === 'FAULT' ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-slate-100 text-slate-400'
+      }`}>
+        <RefreshCw className={`w-6 h-6 ${pump.status === 'ON' ? 'animate-spin' : ''}`} style={{ animationDuration: '3s' }} />
       </div>
-      
-      {pump.status === 'ON' && (
-        <div className="text-right space-y-1">
-          <div className="text-xs text-slate-500">
-            Load: <span className="font-semibold text-slate-700">{pump.load}%</span>
-          </div>
-          <div className="text-xs text-slate-500">
-            RPM: <span className="font-semibold text-slate-700">{pump.rpm}</span>
-          </div>
-        </div>
-      )}
+      <div>
+        <h4 className="font-bold text-slate-700">{pump.name}</h4>
+        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+          pump.status === 'ON' ? 'bg-emerald-100 text-emerald-700' : 
+          pump.status === 'FAULT' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-600'
+        }`}>
+          {pump.status}
+        </span>
+      </div>
     </div>
-  );
-};
+    {pump.status === 'ON' && (
+      <div className="text-right space-y-1">
+        <div className="text-xs text-slate-500">Load: <span className="font-semibold text-slate-700">{pump.load}%</span></div>
+        <div className="text-xs text-slate-500">RPM: <span className="font-semibold text-slate-700">{pump.rpm}</span></div>
+      </div>
+    )}
+  </div>
+);
 
 // --- MAIN DASHBOARD PAGE ---
-
 export default function SCADADashboard() {
   const [mounted, setMounted] = useState(false);
-  const [currentTime, setCurrentTime] = useState('');
-  
-  // Real-time Data States
   const [flowRate, setFlowRate] = useState(125.5);
   const [pressure, setPressure] = useState(4.2);
-  const [level, setLevel] = useState(78); // %
+  const [level, setLevel] = useState(78);
   const [waterQuality, setWaterQuality] = useState<WaterQuality>({ ph: 7.2, turbidity: 2.1, tds: 145 });
-  
-  const [alarms, setAlarms] = useState<Alarm[]>([
+  const [alarms] = useState<Alarm[]>([
     { id: 1, type: 'CRITICAL', message: 'Pump B Overheat Warning', timestamp: '10:24 AM', component: 'Pump Intake B' },
     { id: 2, type: 'WARNING', message: 'Pressure Drop - Zone 4', timestamp: '09:15 AM', component: 'Distribution Net' },
   ]);
@@ -214,14 +195,9 @@ export default function SCADADashboard() {
     { id: '4', name: 'Dist. Pump B', status: 'OFF', load: 0, rpm: 0, temp: 28 },
   ];
 
-  // Simulation Effect
   useEffect(() => {
     setMounted(true);
     const interval = setInterval(() => {
-      // Clock
-      setCurrentTime(new Date().toLocaleTimeString('id-ID'));
-      
-      // Simulate Fluctuations
       setFlowRate(prev => +(prev + (Math.random() * 2 - 1)).toFixed(1));
       setPressure(prev => +(prev + (Math.random() * 0.2 - 0.1)).toFixed(2));
       setLevel(prev => {
@@ -235,204 +211,90 @@ export default function SCADADashboard() {
         tds: Math.floor(prev.tds + (Math.random() * 4 - 2))
       }));
     }, 2000);
-
     return () => clearInterval(interval);
   }, []);
 
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
-      
-      {/* Top Navigation Bar */}
-      <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center gap-4">
-              <div className="bg-blue-600 p-2 rounded-lg">
-                <Waves className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-slate-800 tracking-tight">PDAM SCADA System</h1>
-                <p className="text-xs text-slate-500 font-mono">UNIT: DISTRIBUTION ZONE 1</p>
-              </div>
+    <div className="space-y-6"> 
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <KPICard title="Total Flow Rate" value={flowRate} unit="L/s" icon={Waves} color="bg-blue-500" trend="up" trendValue={2.4} />
+        <KPICard title="Network Pressure" value={pressure} unit="Bar" icon={Gauge} color="bg-cyan-500" trend="down" trendValue={0.8} />
+        <KPICard title="Avg Turbidity" value={waterQuality.turbidity} unit="NTU" icon={Activity} color="bg-purple-500" trend="up" trendValue={0.1} />
+        <KPICard title="Power Usage" value={345} unit="kW" icon={Zap} color="bg-amber-500" trend="up" trendValue={1.2} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="text-lg font-bold text-slate-800">System Pressure Overview</h3>
+              <p className="text-sm text-slate-500">24-Hour Trend Analysis</p>
             </div>
-            
-            <div className="flex items-center gap-6">
-              <div className="text-right hidden md:block">
-                <p className="text-sm font-bold text-slate-700">{currentTime}</p>
-                <p className="text-xs text-slate-400">Live Connection • 12ms Latency</p>
+          </div>
+          <div className="h-[350px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={generatePressureData()}>
+                <defs>
+                  <linearGradient id="colorPressure" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.2}/>
+                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} domain={[0, 6]} />
+                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                <Area type="monotone" dataKey="pressure" stroke="#06b6d4" strokeWidth={3} fillOpacity={1} fill="url(#colorPressure)" />
+                <Line type="monotone" dataKey="threshold" stroke="#ef4444" strokeDasharray="5 5" strokeWidth={1} dot={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        <div className="space-y-6">
+          <ReservoirWidget levelM={level * 0.05} levelPct={level} />
+          <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+            <h3 className="text-slate-600 font-semibold mb-4">Water Quality</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 bg-slate-50 rounded-lg">
+                <span className="text-xs text-slate-500">pH Level</span>
+                <p className="text-xl font-bold text-slate-800">{waterQuality.ph}</p>
               </div>
-              <div className="flex items-center gap-3 border-l pl-6 border-slate-200">
-                <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors relative">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                </button>
-                <div className="h-8 w-8 rounded-full bg-slate-200 border-2 border-white shadow-sm overflow-hidden">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Operator" alt="User" />
-                </div>
+              <div className="p-3 bg-slate-50 rounded-lg">
+                <span className="text-xs text-slate-500">TDS (ppm)</span>
+                <p className="text-xl font-bold text-slate-800">{waterQuality.tds}</p>
               </div>
             </div>
           </div>
         </div>
-      </nav>
+      </div>
 
-      {/* Main Content Area */}
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        
-        {/* ROW 1: KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <KPICard 
-            title="Total Flow Rate" 
-            value={flowRate} 
-            unit="L/s" 
-            icon={Waves} 
-            color="bg-blue-500" 
-            trend="up" 
-            trendValue={2.4} 
-          />
-          <KPICard 
-            title="Network Pressure" 
-            value={pressure} 
-            unit="Bar" 
-            icon={Gauge} 
-            color="bg-cyan-500" 
-            trend="down" 
-            trendValue={0.8} 
-          />
-          <KPICard 
-            title="Avg Turbidity" 
-            value={waterQuality.turbidity} 
-            unit="NTU" 
-            icon={Activity} 
-            color="bg-purple-500" 
-            trend="up" 
-            trendValue={0.1} 
-          />
-          <KPICard 
-            title="Power Usage" 
-            value={345} 
-            unit="kW" 
-            icon={Zap} 
-            color="bg-amber-500" 
-            trend="up" 
-            trendValue={1.2} 
-          />
-        </div>
-
-        {/* ROW 2: Charts & Reservoir */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Main Chart (Pressure) */}
-          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h3 className="text-lg font-bold text-slate-800">System Pressure Overview</h3>
-                <p className="text-sm text-slate-500">24-Hour Trend Analysis</p>
-              </div>
-              <div className="flex gap-2">
-                <button className="px-3 py-1 text-xs font-medium bg-blue-50 text-blue-600 rounded hover:bg-blue-100">Flow</button>
-                <button className="px-3 py-1 text-xs font-medium bg-slate-100 text-slate-600 rounded hover:bg-slate-200">Pressure</button>
-              </div>
-            </div>
-            
-            <div className="h-[350px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={generatePressureData()}>
-                  <defs>
-                    <linearGradient id="colorPressure" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} domain={[0, 6]} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="pressure" 
-                    stroke="#06b6d4" 
-                    strokeWidth={3} 
-                    fillOpacity={1} 
-                    fill="url(#colorPressure)" 
-                  />
-                  {/* Threshold Line */}
-                  <Line type="monotone" dataKey="threshold" stroke="#ef4444" strokeDasharray="5 5" strokeWidth={1} dot={false} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Reservoir Visual & Water Quality */}
-          <div className="space-y-6">
-             <ReservoirWidget levelM={level * 0.05} levelPct={level} />
-             
-             {/* Water Quality Small Panel */}
-             <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-                <h3 className="text-slate-600 font-semibold mb-4">Water Quality</h3>
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 bg-slate-50 rounded-lg">
-                        <span className="text-xs text-slate-500">pH Level</span>
-                        <p className="text-xl font-bold text-slate-800">{waterQuality.ph}</p>
-                    </div>
-                    <div className="p-3 bg-slate-50 rounded-lg">
-                        <span className="text-xs text-slate-500">TDS (ppm)</span>
-                        <p className="text-xl font-bold text-slate-800">{waterQuality.tds}</p>
-                    </div>
-                </div>
-             </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+          <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2"><Settings className="w-5 h-5" /> Pump Station Status</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {pumps.map(pump => <PumpWidget key={pump.id} pump={pump} />)}
           </div>
         </div>
-
-        {/* ROW 3: Pumps & Alarms */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* Pump Status Grid */}
-            <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-                <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                    <Settings className="w-5 h-5 text-slate-500" /> Pump Station Status
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {pumps.map((pump) => (
-                        <PumpWidget key={pump.id} pump={pump} />
-                    ))}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-0 overflow-hidden flex flex-col">
+          <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+            <h3 className="font-bold text-slate-800 flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-red-500" /> Active Alarms</h3>
+            <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full">{alarms.length}</span>
+          </div>
+          <div className="flex-1 overflow-y-auto max-h-[250px] p-2">
+            {alarms.map(alarm => (
+              <div key={alarm.id} className="mb-2 p-3 rounded-lg border-l-4 border-l-red-500 bg-red-50 flex justify-between items-start">
+                <div>
+                  <h5 className="font-bold text-slate-800 text-sm">{alarm.component}</h5>
+                  <p className="text-xs text-red-700 mt-1">{alarm.message}</p>
                 </div>
-            </div>
-
-            {/* Active Alarms Panel */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-0 overflow-hidden flex flex-col">
-                <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                    <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                        <AlertTriangle className="w-5 h-5 text-red-500" /> Active Alarms
-                    </h3>
-                    <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full">{alarms.length}</span>
-                </div>
-                <div className="flex-1 overflow-y-auto max-h-[250px] p-2">
-                    {alarms.map((alarm) => (
-                        <div key={alarm.id} className="mb-2 p-3 rounded-lg border-l-4 border-l-red-500 bg-red-50 flex justify-between items-start group hover:bg-red-100 transition-colors cursor-pointer">
-                            <div>
-                                <h5 className="font-bold text-slate-800 text-sm">{alarm.component}</h5>
-                                <p className="text-xs text-red-700 mt-1">{alarm.message}</p>
-                            </div>
-                            <span className="text-[10px] font-mono text-slate-500 bg-white px-1 rounded">{alarm.timestamp}</span>
-                        </div>
-                    ))}
-                    {alarms.length === 0 && (
-                        <div className="h-full flex flex-col items-center justify-center text-slate-400 p-8">
-                            <span className="text-sm">System Normal</span>
-                        </div>
-                    )}
-                </div>
-                <button className="w-full py-3 text-sm text-slate-500 hover:bg-slate-50 border-t border-slate-100 transition-colors">
-                    View Alarm History
-                </button>
-            </div>
+                <span className="text-[10px] font-mono text-slate-500">{alarm.timestamp}</span>
+              </div>
+            ))}
+          </div>
         </div>
-
-      </main>
+      </div>
     </div>
   );
 }
