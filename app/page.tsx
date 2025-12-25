@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react'; 
 import { Droplets, FileText, UserPlus } from 'lucide-react'; 
 import Link from 'next/link';
-import Image from 'next/image'; // Komponen ini sudah diimpor
+import Image from 'next/image'; 
 import AOS from 'aos'; 
 import 'aos/dist/aos.css'; 
 
@@ -84,7 +84,7 @@ export default function PDAMWelcomeSmallerGlass() {
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
                 <Link 
-                  href="/dashboard"
+                  href="/login"
                   className="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-200 flex items-center justify-center gap-2 text-sm"
                 >
                   <FileText className="w-4 h-4" />
