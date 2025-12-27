@@ -3,18 +3,14 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-// Menggunakan icons yang sama agar konsisten
+import { toast } from 'react-hot-toast';
 import { User, Mail, Lock, LogIn, Loader2, ChevronLeft, ArrowRight } from 'lucide-react'; 
-// Asumsi Anda menggunakan `useEffect` di komponen OtpResendTimer jika diletakkan di sini.
-// Karena komponen timer tidak digunakan di Login, kita hanya impor React dan useState.
 
-// --- KOMPONEN LOGIN UTAMA ---
 export default function LoginPage() {
     const router = useRouter(); 
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     
-    // State untuk form login
     const [identifier, setIdentifier] = useState(''); // Email atau Username
     const [password, setPassword] = useState('');
 
@@ -22,7 +18,6 @@ export default function LoginPage() {
         e.preventDefault();
         setErrorMessage('');
         
-        // Validasi dasar
         if (!identifier || !password) {
             setErrorMessage("Email/Username dan Kata Sandi harus diisi.");
             return;
@@ -31,31 +26,32 @@ export default function LoginPage() {
         setIsLoading(true);
 
         try {
-            // --- GANTI INI DENGAN PANGGILAN API ASLI KE /api/login ---
-            // Saat ini menggunakan simulasi setTimeout (seperti di RegisterPage)
             await new Promise(resolve => setTimeout(resolve, 1500));
             
-            // SIMULASI RESPONSE API
-            const responseStatus = 200; // Ganti dengan hasil fetch(response.status)
-            const data = { username: 'AdminPDAM' }; // Ganti dengan hasil fetch(data)
+            
+            const responseStatus = 200; 
+            const data = { username: 'AdminPDAM' }; 
 
             if (responseStatus === 200) {
-                alert(`Selamat datang, ${data.username}!`);
-                router.push('/dashboard'); // Arahkan ke halaman dashboard
+                toast.success(`Selamat datang, ${data.username}!`);
+                setTimeout(() => {
+                  router.push('/overview'); 
+                }, 1000);
             } else {
+                toast.error('Login gagal. Cek kembali kredensial Anda.');
                 setErrorMessage('Login gagal. Cek kembali kredensial Anda.');
+                setIsLoading(false);
             }
 
         } catch (err) {
+            toast.error('Jaringan error. Silakan coba lagi.');
             setErrorMessage('Jaringan error. Silakan coba lagi.');
-        } finally {
             setIsLoading(false);
         }
     };
     
-    // --- TAMPILAN UTAMA (LAYOUT) ---
     return (
-        // Latar Belakang dan Styling Container Luar yang sama
+        
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-gray-50 to-blue-100 flex items-center justify-center p-4 font-poppins">
             {/* Lebar Kontainer (max-w-md agar sama persis dengan RegisterPage) */}
             <div className="relative z-10 bg-white/50 backdrop-blur-lg border border-white/80 rounded-3xl shadow-2xl shadow-blue-200/50 w-full max-w-md overflow-hidden">
@@ -73,8 +69,9 @@ export default function LoginPage() {
 
                 {/* Form Section */}
                 <div className="p-8">
+                    {/* Error message is now handled by toast, but can be kept for non-toast fallback */}
                     {errorMessage && (
-                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4 text-sm" role="alert">
+                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4 text-sm hidden" role="alert">
                             {errorMessage}
                         </div>
                     )}
@@ -146,8 +143,7 @@ export default function LoginPage() {
     );
 }
 
-// --- KOMPONEN BANTU: INPUT GROUP REUSABLE (DITEMPATKAN DI BAWAH) ---
-// Perlu ditempatkan di file login.page.tsx ini atau dipindahkan ke komponen terpisah
+
 interface InputGroupProps {
     label: string;
     type: string;

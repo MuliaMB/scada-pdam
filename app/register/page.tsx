@@ -4,9 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { User, Mail, Lock, ArrowRight, Loader2, ChevronLeft, Send, CheckCircle } from 'lucide-react'; 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-// Import AOS jika Anda tidak menggunakannya melalui AOSInitializer
-// import AOS from 'aos';
-// import 'aos/dist/aos.css';
 
 // --- Komponen Client untuk Inisialisasi AOS ---
 const AOSInitializer: React.FC = () => {

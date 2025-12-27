@@ -1,12 +1,14 @@
-// app/dashboard/Taskbar.tsx
+// app/(app)/overview/taskbar.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Waves, Bell } from 'lucide-react'; 
+import ConnectionStatus from '@/app/components/ui/ConnectionStatus';
+import { useSidebar } from '@/app/context/SidebarContext';
 
-// Komponen Taskbar murni (hanya berisi markup)
-const TaskbarComponent = ({ currentTime }: { currentTime: string }) => (
-    <nav className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 shadow-sm sticky top-0 z-50">
+
+const TaskbarComponent = ({ currentTime, isOnline }: { currentTime: string, isOnline: boolean }) => (
+    <nav className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 shadow-sm sticky top-0 z-30">
         
         {/* Kiri: Judul */}
         <div className="flex items-center gap-3">
@@ -17,9 +19,8 @@ const TaskbarComponent = ({ currentTime }: { currentTime: string }) => (
         {/* Kanan: Notifikasi & Waktu */}
         <div className="flex items-center gap-6">
             <div className="text-right hidden md:block">
-                {/* Waktu di-passing dari wrapper Client */}
                 <p className="text-sm font-bold text-slate-700">{currentTime}</p> 
-                <p className="text-xs text-slate-400">Live Connection • 12ms Latency</p>
+                <ConnectionStatus isOnline={isOnline} />
             </div>
             <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors relative">
                 <Bell className="w-5 h-5" />
@@ -32,28 +33,28 @@ const TaskbarComponent = ({ currentTime }: { currentTime: string }) => (
     </nav>
 );
 
-// Wrapper untuk menangani state Waktu (Mencegah Hydration Error)
 export default function ClientTaskbarWrapper() {
     const [currentTime, setCurrentTime] = useState('');
     const [mounted, setMounted] = useState(false);
+    const { isOnline } = useSidebar(); 
 
     useEffect(() => {
         setMounted(true);
-        // Ambil waktu setelah komponen dimuat di client
+        
         setCurrentTime(new Date().toLocaleTimeString('id-ID'));
         
-        // Agar jam berjalan real-time
-        const timer = setInterval(() => {
+        const clockTimer = setInterval(() => {
             setCurrentTime(new Date().toLocaleTimeString('id-ID'));
         }, 1000);
 
-        return () => clearInterval(timer);
+        return () => {
+            clearInterval(clockTimer);
+        };
     }, []);
 
-    // Jika belum mounted (SSR), tampilkan kosong atau placeholder
     if (!mounted) {
-        return <TaskbarComponent currentTime={"--:--:--"} />;
+        return <TaskbarComponent currentTime={"--:--:--"} isOnline={isOnline} />;
     }
 
-    return <TaskbarComponent currentTime={currentTime} />;
+    return <TaskbarComponent currentTime={currentTime} isOnline={isOnline} />;
 };
